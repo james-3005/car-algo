@@ -1,10 +1,10 @@
-const {G2} = require('./test')
+const {G2, HashMap} = require('./test')
 const {timesOfIntersection} = require("./intersection");
 const G = new Set();
 const min_dur = 3;
 const min_wei = 0.5;
 const total_time = 10;
-(function VG_GROWTH(Graph, H, G) {
+function VG_GROWTH(Graph, H, G) {
   const list_u = getListU(Graph)
   //line 1
   for (let i = 0; i <= list_u.length; i++) {
@@ -23,18 +23,18 @@ const total_time = 10;
         obtainValidGroup(G, H_, VH_[v])
       }
       //line 8
-      let EVH_ = getDirectiveEdge(VH_, G2)
-      const VGH_ = new Map()
+      let EVH_ = getDirectiveEdge(VH_, Graph)
+      const VGH_ = new HashMap()
       if (EVH_.length) {
         //line 10
         for (let i = 0; i < EVH_.length; i++) {
           const singleDirectEdge = EVH_[i]
-          const s = timesOfIntersection([Graph.get(singleDirectEdge.join('+')), Graph.get([singleDirectEdge[0], u].join('+')), Graph.get([singleDirectEdge[1], u].join('+'))])
+          const s = timesOfIntersection([Graph.get(singleDirectEdge), Graph.get([singleDirectEdge[0], u]), Graph.get([singleDirectEdge[1], u])])
           const validateS = isValidMinDurMinWei(s, min_dur, min_wei, total_time)
           if (!validateS) {
             EVH_[i] = -1;
           } else {
-            VGH_.set(EVH_[i].join('+'), validateS)
+            VGH_.set(EVH_[i], validateS)
           }
         }
         //line 13
@@ -47,16 +47,15 @@ const total_time = 10;
       }
     }
   }
-})(G2, null, G)
+}
 
 
 // tested
 function getPrefixNeighbor(Graph, u) {
   const set = [];
   Graph.forEach((_, key) => {
-    const extractKey = key.split('+')
-    if (extractKey[1] === u)
-      set.push(extractKey)
+    if (key[1] === u)
+      set.push(key)
   })
   return set;
 }
@@ -70,8 +69,8 @@ function getDirectiveEdge(VH_, G2) {
   const setPrefix = VH_.map(key => key[0])
   const setDirectiveEdge = [];
   G2.forEach((_, key) => {
-    if (new Set([...setPrefix, ...key.split('+')]).size === setPrefix.length)
-      setDirectiveEdge.push(key.split('+'))
+    if (new Set([...setPrefix, ...key]).size === setPrefix.length)
+      setDirectiveEdge.push(key)
   })
   return setDirectiveEdge
 }
@@ -79,7 +78,7 @@ function getDirectiveEdge(VH_, G2) {
 function isValidMinDurMinWei(s, min_dur, min_wei, totalTime = 10) {
   let sumTime = 0
   const filteredMinDur = s.filter((item) => {
-    if (item[1] - item[0]+1 >= min_dur) {
+    if (item[1] - item[0] + 1 >= min_dur) {
       sumTime += item[1] - item[0] + 1;
       return true
     }
@@ -89,15 +88,17 @@ function isValidMinDurMinWei(s, min_dur, min_wei, totalTime = 10) {
 }
 
 function getListU(Graph) {
-  const listU = new Set()
+  const listU = new Set();
   Graph.forEach((_, key) => {
-    const extractKey = key.split('+')
-    listU.add(extractKey[0])
-    listU.add(extractKey[1])
-  })
-  return [...listU]
+    const [u1, u2] = key;
+    listU.add(u1);
+    listU.add(u2);
+  });
+  return Array.from(listU);
 }
 
-// console.log(isValidMinDurMinWei([[1,1],[4,7],[5, 8]],3,0.61, 10))
-// console.log(G2.get([1,4].join('+')))
-console.log(G)
+// console.log(G)
+
+module.exports = {
+  VG_GROWTH
+}
